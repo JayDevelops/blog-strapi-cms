@@ -1,30 +1,55 @@
-# Creating multi-stage build for production
-FROM node:22-alpine AS build
-RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git > /dev/null 2>&1
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+# ---------- Build Stage ----------
+FROM node:20-alpine AS build
 
-WORKDIR /opt/
+# Install build deps for sharp/esbuild/etc.
+RUN apk update && apk add --no-cache \
+  build-base \
+  gcc \
+  autoconf \
+  automake \
+  zlib-dev \
+  libpng-dev \
+  nasm \
+  vips-dev \
+  git \
+  libc6-compat \
+  python3
+
+# Set workdir
+WORKDIR /srv/app
+
+# Install dependencies (production only, no dev deps)
 COPY package.json package-lock.json ./
-RUN npm install -g node-gyp
-RUN npm config set fetch-retry-maxtimeout 600000 -g && npm install --only=production
-ENV PATH=/opt/node_modules/.bin:$PATH
-WORKDIR /opt/app
+RUN npm ci --omit=dev
+
+# Rebuild esbuild (covers Alpine + Strapi’s Vite deps)
+RUN find node_modules -type d -name esbuild -exec npm rebuild esbuild --prefix {} --force \;
+
+# Copy source and build
 COPY . .
 RUN npm run build
 
-# Creating final production image
-FROM node:22-alpine
+# ---------- Final Stage ----------
+FROM node:20-alpine
+
+# Runtime deps (sharp needs vips)
 RUN apk add --no-cache vips-dev
+
+# Set env
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
-WORKDIR /opt/
-COPY --from=build /opt/node_modules ./node_modules
-WORKDIR /opt/app
-COPY --from=build /opt/app ./
-ENV PATH=/opt/node_modules/.bin:$PATH
 
-RUN chown -R node:node /opt/app
+WORKDIR /srv/app
+
+# Copy built app + node_modules from build stage
+COPY --from=build /srv/app ./
+
+# Ensure correct permissions
+RUN chown -R node:node /srv/app
 USER node
+
+# Expose port
 EXPOSE 1337
+
+# Start Strapi
 CMD ["npm", "run", "start"]

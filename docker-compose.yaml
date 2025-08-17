@@ -20,8 +20,6 @@ services:
       API_TOKEN_SALT: ${API_TOKEN_SALT}
       ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
       JWT_SECRET: ${JWT_SECRET}
-    volumes:
-      - ./app:/srv/app
     ports:
       - "1337:1337"
     depends_on:
