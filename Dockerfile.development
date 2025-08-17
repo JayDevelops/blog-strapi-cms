@@ -1,0 +1,43 @@
+# Use Node 20 LTS (stable for Strapi + esbuild on Alpine)
+FROM node:20-alpine
+
+# Install build dependencies required for esbuild, sharp, etc.
+RUN apk update && apk add --no-cache \
+  build-base \
+  gcc \
+  autoconf \
+  automake \
+  zlib-dev \
+  libpng-dev \
+  nasm \
+  bash \
+  vips-dev \
+  git \
+  libc6-compat \
+  python3
+
+# Set working directory for Strapi (matches docker-compose volumes)
+WORKDIR /srv/app
+
+# Install dependencies first (better caching)
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Rebuild ALL esbuild binaries (root + nested like Vite’s)
+RUN find node_modules -type d -name esbuild -exec npm rebuild esbuild --prefix {} --force \;
+
+# Add node_modules binaries to PATH
+ENV PATH=/srv/app/node_modules/.bin:$PATH
+
+# Copy app source
+COPY . .
+
+# Ensure correct ownership for hot reload in dev
+RUN chown -R node:node /srv/app
+USER node
+
+# Expose Strapi dev port
+EXPOSE 1337
+
+# Default to development mode
+CMD ["npm", "run", "develop"]
