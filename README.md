@@ -1,61 +1,81 @@
-# 🚀 Getting started with Strapi
+# 🚀 Getting Started with Strapi + Docker
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+This project uses [Strapi](https://strapi.io) as the CMS and supports both local development and production deployment using Docker.
 
-### `develop`
+---
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
+## 📦 Development (Docker)
 
+You can run Strapi in development mode using the provided `docker-compose.development.yml`. This enables **autoReload** for a smoother dev experience.
+
+### Start Development Server
+
+```bash
+docker compose -f docker-compose.development.yml up --build
 ```
+
+### Stop Development Server
+
+```bash
+docker compose -f docker-compose.development.yml down
+```
+
+### Access
+
+Strapi Admin Panel: http://localhost:1337/admin
+
+## ⚙️ Production Deployment (Docker)
+
+To run Strapi in production, use the included Dockerfile.production.
+
+### Build Production Image
+
+```bash
+docker build -t my-strapi-app -f Dockerfile.production .
+```
+
+### Run Production Image
+
+```bash
+docker run -d \
+  --name strapi \
+  -p 1337:1337 \
+  -e DATABASE_CLIENT=postgres \
+  -e DATABASE_HOST=<your-db-host> \
+  -e DATABASE_PORT=5432 \
+  -e DATABASE_NAME=<your-db-name> \
+  -e DATABASE_USERNAME=<your-db-username> \
+  -e DATABASE_PASSWORD=<your-db-password> \
+  -e NODE_ENV=production \
+  my-strapi-app
+```
+
+### Access
+
+Strapi Admin Panel: http://localhost:1337/admin
+
+## 🛠 Strapi CLI Commands
+
+Strapi also comes with a full featured Command Line Interface.
+
+```bash
 npm run develop
 # or
 yarn develop
 ```
 
-### `start`
+Start your Strapi application when autoReload is disabled.
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
-
-```
+```bash
 npm run start
 # or
 yarn start
 ```
 
-### `build`
+Build the strapi admin panel.
 
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
-
-```
+```bash
 npm run build
 # or
 yarn build
 ```
-
-## ⚙️ Deployment
-
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
-
-```
-yarn strapi deploy
-```
-
-## 📚 Learn more
-
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
