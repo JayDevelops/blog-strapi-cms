@@ -20,7 +20,7 @@ WORKDIR /srv/app
 
 # Install dependencies (production only, no dev deps)
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Rebuild esbuild (covers Alpine + Strapi’s Vite deps)
 RUN find node_modules -type d -name esbuild -exec npm rebuild esbuild --prefix {} --force \;
