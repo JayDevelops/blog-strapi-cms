@@ -24,10 +24,14 @@ export default ({ env }) => ({
       async handler(uid, { documentId, locale, status }) {
         const document = await strapi.documents(uid).findOne({
           documentId,
-          populate: null,
-          fields: ["slug"],
+          populate: ["title"],
+          fields: ["title", "slug"],
         });
-        const { slug } = document;
+        const slug = document.slug || slugify(document.title);
+
+        if (!slug) {
+          throw new Error("Unable to generate slug for preview");
+        }
 
         const urlSearchParams = new URLSearchParams({
           secret: env("PREVIEW_SECRET"),
@@ -44,3 +48,14 @@ export default ({ env }) => ({
     },
   },
 });
+
+function slugify(str: string | undefined) {
+  return str!
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/&/g, "-and-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-");
+}
