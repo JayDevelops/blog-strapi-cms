@@ -17,4 +17,38 @@ export default ({ env }) => ({
     nps: env.bool("FLAG_NPS", true),
     promoteEE: env.bool("FLAG_PROMOTE_EE", true),
   },
+  preview: {
+    enable: true,
+    config: {
+      allowedOrigins: env("CLIENT_URL"),
+      async handler(uid, { documentId, locale, status }) {
+        const document = await strapi.documents(uid).findOne({
+          documentId,
+          populate: null,
+          fields: ["slug", "title"],
+        });
+
+        const slug =
+          document.slug ||
+          document.title
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/&/g, "-and-")
+            .replace(/[^\w-]+/g, "")
+            .replace(/--+/g, "-");
+
+        const urlSearchParams = new URLSearchParams({
+          secret: env("PREVIEW_SECRET"),
+          ...(slug && { slug }),
+          uid,
+          status,
+        });
+
+        const previewURL = `${env("CLIENT_URL")}/api/preview?${urlSearchParams}`;
+        return previewURL;
+      },
+    },
+  },
 });
