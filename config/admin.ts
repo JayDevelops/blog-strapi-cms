@@ -27,7 +27,16 @@ export default ({ env }) => ({
           populate: ["title"],
           fields: ["title", "slug"],
         });
-        const slug = document.slug || slugify(document.title);
+        const slug =
+          document.slug ||
+          document.title
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/&/g, "-and-")
+            .replace(/[^\w-]+/g, "")
+            .replace(/--+/g, "-");
 
         if (!slug) {
           throw new Error("Unable to generate slug for preview");
@@ -48,14 +57,3 @@ export default ({ env }) => ({
     },
   },
 });
-
-function slugify(str: string | undefined) {
-  return str!
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/&/g, "-and-")
-    .replace(/[^\w-]+/g, "")
-    .replace(/--+/g, "-");
-}
